@@ -7,24 +7,19 @@
 #    - with different profiles, e.g. starting from beginning of jamendo or from id xxx...
 #  2. Download/Open/Load m3u into Player a track/album based on trackid/albumid or a jamendo url.
 #
-
-
-#AUTHOR="Natenom <natenom@natenom.name>"
-#VERSION="0.0.9"
-#LAST_EDIT="2012-03-06"
 #LICENSE="GPLv3"
 
 ## SETTINGS ##
 jl__tmp_m3u=/tmp/jamendo/${$}_jamendo.m3u #Save m3u File to ...
 jl__next_id=0
-jl__download_app=/usr/bin/midori
+jl__download_app=/usr/bin/chromium
 jl__dwl_baseurl="http://www.jamendo.com/de/download/album"
 jl__save_last_valid_url=$HOME/.jamendo_listen/lvurl #Save the last valid url to this file.
 jl__downloaded=$HOME/.jamendo_listen/jamendo_downloaded
 jl__bin_mocp="mocp"
 #"/home/apps/moc/bin/mocp"
 jl__bin_vlc=$(which vlc)
-jl__bin_mplayer=$(which mplayer)
+jl__bin_mplayer=$(which mplayer2)
 jl__verbose=0
 jl__stop_after_x_fails=200 #Stop after this count of failed IDs. Probably we are at the end of the ID List ... :P
 _url_type='album'
@@ -45,15 +40,15 @@ Options
  -s|--savedid			       	Use the last valid id from ${jl__save_last_valid_url} (default behavior).
  -plv|--print-last-valid		Prints the last valid album ID from ${jl__save_last_valid_url} and exit.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
- -d|--download-album                Use app to download current song. (Currently ${jl__download_app}).
+ -d|--download-album                    Use app to download current song. (Currently ${jl__download_app}).
 					Requesting a download for a track results in the complete album download :)
  -o|--open-album-page			Use app to open the album page. (Currently ${jl__download_app}).
  -lm PLAYER                             Downloads the m3u file of the id and loads it into player X (default is last valid id from ${jl__save_last_valid_url}).
  -snlm PLAYER                           Search next album ID and load album m3u into player X (-sn + -lm X).
                                         PLAYER can be:
-                                          m|moc for Music On Console
-                                          v|vlc for Video Lan Client
-					  mp|mplayer for MPlayer
+                                           m|moc for Music On Console
+                                           v|vlc for Video Lan Client
+					   mp|mplayer for MPlayer
                                         This is neccessary because every player has different commands to load playlists etc.
  -3|--printm3uurl			Prints m3u URL of given ID (default is last valid id from ${jl__save_last_valid_url}).
  -lvf					Use given file to store last valid id instead of default ${jl__save_last_valid_url}.
@@ -61,11 +56,6 @@ Options
 
 Note: The last valid ID will only be written to ${jl__save_last_valid_url} when using -sn or -snlm with any other option.
 EOF
-}
-
-function clean() {
- __a=1
-# # rm "${jl__tmp_m3u}"
 }
 
 #Get a download link for m3u file to the according id.
@@ -89,8 +79,7 @@ function download_m3u() {
     [ ! -d "$(dirname ${jl__tmp_m3u})" ] && mkdir "$(dirname ${jl__tmp_m3u})"
     wget -O "${jl__tmp_m3u}" "${_url}" &>/dev/null
 
-
-    #Special for good quality on jamendo :)
+    #Special for better quality on jamendo :)
     #Jamendo gibt nur das Format mp31 fuer Streams als Standard raus; man kann jedoch auch das
     # beste Format streamen lassen, wenn man es selbst aendert; man muss statt format=mp31 format=irgendwasanderes angeben.
     # Siehe hier: http://developer.jamendo.com/fr/wiki/MusiclistApi -> List of Audio Encodings
@@ -113,9 +102,30 @@ function print_saved_last_valid_id() {
     cat ${jl__save_last_valid_url}
 }
 
+function replace_m3u_redirects() {
+    # Because Jamendo changed their url schema again, this is neccessary. This time they not only changed url schema,
+    #  but they are also fixme dynamic host bla. So we need to replace every url in a m3u-file with its 
+    #  redirection.
+    
+    #from http://storage-new.newjamendo.com?trackid=661833&format=ogg2&u=0
+    #to different hosts like   http://storage-new[1|2].newjamendo.com/tracks/661833_112.ogg
+    #but different hosts for almost every song...
+
+    while read line;
+    do
+       ifmatch="$( echo $line | grep -i '^http')"
+       if [ ! -z "$ifmatch" ]; then
+           _redirected=$(curl -v "$line" 2>&1 | sed -n -r -e 's#.*Location: (http.*)$#\1#p')
+	   sed -i "s#$line#${_redirected}#g" ${jl__tmp_m3u}
+       fi
+    done<${jl__tmp_m3u}
+}
+
 #Determines the given player and loads the m3u file into it.
 # $1 - Player
 function load_m3u_to_player() {
+    replace_m3u_redirects 
+
     case ${1} in
       v|vlc)
 	  "${jl__bin_vlc}" "${jl__tmp_m3u}" > /dev/null 2>&1 &
@@ -201,15 +211,8 @@ function open_download_page() {
     fi
 }
 
-##Starts application x to open the album page.
-## $1 - Album ID
-#function open_album_page() {
-#    "${jl__download_app}" "http://www.jamendo.com/de/album/${1}" &
-#}
-
-#Starts the defined application to optn the album page.
+#Starts the defined application to open the album page.
 # Needs to know whether url is album or track.
-#### $1 = album or track
 # $1 = id
 function open_album_page() {
     "${jl__download_app}" "http://www.jamendo.com/de/${_url_type}/${1}" > /dev/null 2&>1
