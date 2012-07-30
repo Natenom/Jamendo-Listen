@@ -25,6 +25,7 @@ jl__stop_after_x_fails=200 #Stop after this count of failed IDs. Probably we are
 _url_type='album'
 jl__download_dest="$HOME/stack/music"
 _print_only=0
+_suffix=""
 ## DO NOT EDIT BELOW THIS LINE ##
 
 function help() {
@@ -37,7 +38,6 @@ Options
  -i|--id				Album ID (must be the first argument). ID is always an album ID. For others user -url.
  -url|--url				Instead of Album ID you can use the whole URL (without last /).
  -purl					ONLY PRINT JAMENDO OGG URL
- -s|--savedid			       	Use the last valid id from ${jl__save_last_valid_url} (default behavior).
  -plv|--print-last-valid		Prints the last valid album ID from ${jl__save_last_valid_url} and exit.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
  -d|--download-album                    Use app to download current song. (Currently ${jl__download_app}).
@@ -53,6 +53,15 @@ Options
  -3|--printm3uurl			Prints m3u URL of given ID (default is last valid id from ${jl__save_last_valid_url}).
  -lvf					Use given file to store last valid id instead of default ${jl__save_last_valid_url}.
 					Must be the first argument.
+ –sx|--suffix				Must be the first option.
+					By using a suffix (which will affect all used files/directories, but not jl__tmp_m3u) you can search
+ 					different id pools. E.g. -sx start for id=0 ... or -sx current...
+					It adds the given parameter to ${jl__save_last_valid_url} with a _ between.
+					Default suffix is empty. This replaces -lvf.
+                                        For now you need to create this file
+					and add the last line must contain any (valid or unvalid) Jamendo-ID. If this files does
+                                        not exist it will be created and the process will start from 0.
+
 
 Note: The last valid ID will only be written to ${jl__save_last_valid_url} when using -sn or -snlm with any other option.
 EOF
@@ -244,15 +253,6 @@ function parse_options()
 
     while [ "$#" -gt "0" ]; do
         case ${1} in
-            -s|--savedid) #Use saved id in ${jl__save_last_valid_url} (default behavior)
-		_start_id="$(cat ${jl__save_last_valid_url})"
-		shift
-		;;
-	    -lvf) #Use another file to store last valid url
-		jl__save_last_valid_url="${2}"
-		_start_id=$(print_saved_last_valid_id) #Reread last id from given file.
-		shift 2
-		;;
             -plv|--print-last-valid)
                 print_saved_last_valid_id
 		read __a #Wait until ...
@@ -268,7 +268,6 @@ function parse_options()
 		;;
 	    -url|--url) #Anstatt id kann man auch die ganze url verwenden
 	    	 	#check whether this is an album id or an track id
-
 		__tmp_inf=$(echo ${2} | egrep -o '(track|album)/[0-9]{1,7}$')  #danach haben wir album/id oder /track/id
 		_url_type=$(echo ${__tmp_inf} | cut -d'/' -f1) #can be track or album
 	        _start_id=$(echo ${__tmp_inf} | cut -d'/' -f2)
@@ -279,6 +278,13 @@ function parse_options()
                 load_m3u_to_player ${2}
                 shift 2
                 ;;
+	    -sx|--suffix)
+	        _suffix=${2}
+		jl__save_last_valid_url="${jl__save_last_valid_url}_${_suffix}"
+		echo "Using prefix, which results in ${jl__save_last_valid_url}"
+		_start_id=$(print_saved_last_valid_id)
+		shift 2
+		;;
             -3|--printm3uurl)
                 get_m3u_url_from_id ${_start_id}
 		exit 0
