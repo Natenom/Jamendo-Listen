@@ -47,16 +47,20 @@ Options
  -v|--verbose				Be verbose.
  -de|-debug|--debug			Use shell tracing "set -x".
  -i|--id				Set album id by hand. This is always an album id.
- -url|--url				Instead of Album ID you can use the whole URL (without last /).
+ -url|--url				Instead of an album id you can use the whole URL (without last /) to specify an album.
  -plv|--print-last-valid		Prints the last valid album ID. Can be used together with --suffix.
- -sn|--searchnextid                     Search for the next valid album ID, store and display it. Can be used together with --suffix and/or --id.
+ -sn|--searchnextid                     Search for the next valid album ID, store and display it.
+					Can be used together with --suffix and/or --id.
+					Can be used together with -lm.
  -d|--download                		Download album using ${jl__bin_wget}. Can be used together with --suffix and/or --id.
 					Requesting a download for a track results in the complete album download :)
  -pd|--print-download-url		Print download url for last valid album id. Can be used together with --suffix and/or --id.
  -o|--open-album-page			Use ${jl__browser} to open the album page. Can be used together with --suffix and/or --id.
  -lm PLAYER                             Downloads the m3u file of the id and loads it into player X (default is last valid id from ${jl__save_last_valid_url}).
 					Can be used together with --suffix and/or --id.
- -snlm PLAYER                           Search next album ID and load album m3u into player X (-sn + -lm X). Can be used together with --suffix and/or --id.
+					Can be used together with --searchnextid.
+ -snlm PLAYER                           Search next album id and load album m3u into player X (-sn + -lm X). Can be used together with --suffix and/or --id.
+					This is the same as "-sn -lm PLAYER".
                                         PLAYER can be:
                                            m|moc for Music On Console
                                            v|vlc for Video Lan Client
@@ -318,16 +322,10 @@ function main() {
 
 
 # All what starts external commands, to the end...
-    if [ "${arg__loadm3uinto}" = "true" ]; then
-	download_m3u ${arg__start_id}
-	load_m3u_to_player "${arg__mediaplayer}"
-	exit 0
-    fi
-
     if [ "${arg__searchnextid}" = "true" ]; then
 	search_next_jid ${arg__start_id} #Search from given or last valid id.
 
-	if [ "${arg__searchnextloadmedia}" = "true" ]; then
+	if [ "${arg__searchnextloadmedia}" = "true" -o "${arg__loadm3uinto}" = "true" ]; then
 	  download_m3u ${jl__next_id} #Then add the found new valid id to the player.
 	  load_m3u_to_player "${arg__mediaplayer}"
 	else
@@ -336,6 +334,13 @@ function main() {
 
 	exit 0
     fi
+
+    if [ "${arg__loadm3uinto}" = "true" ]; then
+	download_m3u ${arg__start_id}
+	load_m3u_to_player "${arg__mediaplayer}"
+	exit 0
+    fi
+
 
     if [ "${arg__open_albumpage}" = "true" ]; then
 	open_album_page "${arg__start_id}"
