@@ -50,9 +50,9 @@ Options
  -url|--url				Instead of Album ID you can use the whole URL (without last /).
  -plv|--print-last-valid		Prints the last valid album ID from ${jl__save_last_valid_url} and exit.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
- -d|--download                		Use app to download current song. (Currently ${jl__download_app}).
+ -d|--download                		Use ${jl__download_app} to download current album.
 					Requesting a download for a track results in the complete album download :)
- -pd|--print-download-page-url		Print url to download page.
+ -pd|--print-download-url		Print download url for current album.
  -o|--open-album-page			Use app to open the album page. (Currently ${jl__download_app}).
  -lm PLAYER                             Downloads the m3u file of the id and loads it into player X (default is last valid id from ${jl__save_last_valid_url}).
  -snlm PLAYER                           Search next album ID and load album m3u into player X (-sn + -lm X).
