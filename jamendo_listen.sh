@@ -74,7 +74,7 @@ Options
  -ps|--print-suffixes			Print available suffixes
 
 
-Note: The last valid ID will only be saved to ${jl__save_last_valid_url} when using -sn or -snlm with any other option.
+Note: The last valid ID will only be saved to ${jl__save_last_valid_url} when using -sn or -snlm.
 EOF
 }
 
@@ -169,15 +169,15 @@ function load_m3u_to_player() {
 	  sleep 1.5 && "$jl__bin_mocp" -p & #Sleep times must be increased on heavy loaded systems.
         ;;
       mp|mplayer)
-	  echo -e "Number of Songs: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
-	  echo -e "AlbumID: ${jl__next_id}\n"
-	  echo -e "Playlist: ${jl__tmp_m3u}\n"
+	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
+	  echo -e "Album ID: ${jl__next_id}\n"
+	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
 	;;
       mp2|mplayer2)
-	  echo -e "Number of Songs: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
-	  echo -e "AlbumID: ${jl__next_id}\n"
-	  echo -e "Playlist: ${jl__tmp_m3u}\n"
+	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
+	  echo -e "Album ID: ${jl__next_id}\n"
+	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer2}" -playlist ${jl__tmp_m3u}
 	;;
     esac
