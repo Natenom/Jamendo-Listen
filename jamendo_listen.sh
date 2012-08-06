@@ -10,13 +10,10 @@
 #LICENSE="GPLv3"
 
 ## SETTINGS ##
-jl__dwl_baseurl="http://www.jamendo.com/de/download/album"
-jl__tmp_m3u=/tmp/jamendo/${$}_jamendo.m3u #Save m3u File to ...
-jl__next_id=0
-arg__url_type='album'
+jl__download_dest="$HOME/stack/music" #Where your music should be downloaded to.
+jl__tmp_m3u=/tmp/jamendo/${$}_jamendo.m3u #Save m3u File to ... only temporary ... todo: remove temp data
 
-jl__download_dest="$HOME/stack/music"
-
+## EXTERNAL PROGRAMS ##
 jl__download_app=/usr/bin/chromium
 jl__bin_mocp="mocp"
 #"/home/apps/moc/bin/mocp"
@@ -24,17 +21,22 @@ jl__bin_vlc=$(which vlc)
 jl__bin_mplayer=$(which mplayer)
 jl__bin_mplayer2=$(which mplayer2)
 
-jl__workdir="${HOME}/.jamendo_listen"
+
+
+## DO NOT EDIT BELOW THIS LINE ##
+jl__dwl_baseurl="http://www.jamendo.com/de/download/album"
+jl__next_id=0
+arg__url_type='album'
+
+jl__workdir="${HOME}/.local/share/jamendo_listen"
+
 jl__lvurl_filename=lvurl
 jl__downloaded_filename=jamendo_downloaded
 jl__save_last_valid_url=${jl__workdir}/${jl__lvurl_filename} #Save the last valid url to this file.
 jl__downloaded=${jl__workdir}/${jl__downloaded_filename}
 arg__verbose=false
 jl__stop_after_x_fails=200 #Stop after this count of failed IDs. Probably we are at the end of the ID List ... :P
-
-#arg__print_download_page_url="false"
 arg__suffix=""
-## DO NOT EDIT BELOW THIS LINE ##
 
 function help() {
 cat << EOF
@@ -266,6 +268,10 @@ function get_type_from_url() {
 }
 
 function main() {
+    if [ ! -d "${jl__workdir}" ]; then
+	mkdir -p "${jl__workdir}"
+    fi
+
 #Alway needed args/vars:
     if [ "${arg__debug}" = "true" ]; then
 	set -x
