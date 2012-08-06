@@ -21,7 +21,8 @@ jl__download_app=/usr/bin/chromium
 jl__bin_mocp="mocp"
 #"/home/apps/moc/bin/mocp"
 jl__bin_vlc=$(which vlc)
-jl__bin_mplayer=$(which mplayer2)
+jl__bin_mplayer=$(which mplayer)
+jl__bin_mplayer2=$(which mplayer2)
 
 jl__workdir="${HOME}/.jamendo_listen"
 jl__lvurl_filename=lvurl
@@ -57,6 +58,7 @@ Options
                                            m|moc for Music On Console
                                            v|vlc for Video Lan Client
 					   mp|mplayer for MPlayer
+					   mp2|mplayer2 for MPlayer2
                                         This is neccessary because every player has different commands to load playlists etc.
  -3|--printm3uurl			Prints m3u URL of given ID (default is last valid id from ${jl__save_last_valid_url}).
  -lvf					Use given file to store last valid id instead of default ${jl__save_last_valid_url}.
@@ -169,6 +171,12 @@ function load_m3u_to_player() {
 	  echo -e "AlbumID: ${jl__next_id}\n"
 	  echo -e "Playlist: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
+	;;
+      mp2|mplayer2)
+	  echo -e "Number of Songs: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
+	  echo -e "AlbumID: ${jl__next_id}\n"
+	  echo -e "Playlist: ${jl__tmp_m3u}\n"
+          "${jl__bin_mplayer2}" -playlist ${jl__tmp_m3u}
 	;;
     esac
 }
