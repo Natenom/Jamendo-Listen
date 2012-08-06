@@ -170,13 +170,15 @@ function load_m3u_to_player() {
         ;;
       mp|mplayer)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
-	  echo -e "Album ID: ${jl__next_id}\n"
+	  #echo -e "Album ID: ${jl__next_id}\n"
+	  echo -e "Album ID: ${arg__start_id}\n"
 	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
 	;;
       mp2|mplayer2)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
-	  echo -e "Album ID: ${jl__next_id}\n"
+	  #echo -e "Album ID: ${jl__next_id}\n"
+	  echo -e "Album ID: ${arg__start_id}\n"
 	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer2}" -playlist ${jl__tmp_m3u}
 	;;
@@ -318,7 +320,7 @@ function main() {
 
     if [ "${arg__searchnextid}" = "true" ]; then
 	search_next_jid ${arg__start_id} #Search from given or last valid id.
-#	print_saved_last_valid_id
+	print_saved_last_valid_id
 
 	if [ "${arg__searchnextloadmedia}" = "true" ]; then
 	  download_m3u ${jl__next_id} #Then add the found new valid id to the player.
