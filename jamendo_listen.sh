@@ -46,8 +46,9 @@ Options
  -h|--help                		This help.
  -v|--verbose				Be verbose.
  -de|-debug|--debug			Use shell tracing "set -x".
- -i|--id				Set album id by hand. This is always an album id.
- -url|--url				Instead of an album id you can use the whole URL (without last /) to specify an album.
+ -i|--id				Set album id by hand. This is always an album id. Can be replaced by --url.
+ -url|--url				Instead of --id you can always specify an album id using the whole album URL (without last /).
+					Can be replaced by --id.
  -plv|--print-last-valid		Prints the last valid album ID. Can be used together with --suffix.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
 					Can be used together with --suffix and/or --id.
