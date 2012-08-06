@@ -69,12 +69,9 @@ Options
                                         This is neccessary because every player has different commands to load playlists etc.
  -3|--printm3uurl			Prints m3u url. Cann be used together with --suffix and/or --id.
  -sx|--suffix				By using a suffix (which will affect all used files/directories, but not jl__tmp_m3u) you can search
- 					different id pools. E.g. -sx start for id=0 ... or -sx current...
-					It adds the given parameter to ${jl__save_last_valid_url} with a _ between.
-					Default suffix is empty.
-                                        For now you need to create this file and add the last line which must contain
-					any (valid or unvalid) Jamendo-ID. If this files does not exist it will be created and the process
-					will start from 0.
+ 					different id pools. The default suffix is empty.
+					To initialize a new suffix, use "-sx newsuf --id 12345". The script will then search the next valid
+					album id, beginning with 12345+1. If the id is omitted, the script will start with album id 0+1.
  -ps|--print-suffixes			Print already used suffixes.
 
 
