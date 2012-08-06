@@ -128,7 +128,7 @@ function print_suffixes() {
     local _suffix_files=$(cd ${jl__workdir} && find -iname "${jl__lvurl_filename}_*" | grep -v "_history")
     for i in $(echo ${_suffix_files})
     do
-      echo ${i##./lvurl_}
+      echo ${i##./lvurl_} >&2
     done
 }
 
@@ -278,14 +278,13 @@ function main() {
     fi
 
     if [ ! -z "${arg__suffix}" ]; then
-        echo "Using suffix: ${arg__suffix##_}"
+        echo "Using suffix: ${arg__suffix##_}" >&2
     fi
 
     if [ -z "${arg__start_id}" ]; then
 	arg__start_id=$(print_saved_last_valid_id)
     else
-	#_start_id=$(print_saved_last_valid_id)
-	echo "arg__start_id: ${arg__start_id}"
+	echo "arg__start_id: ${arg__start_id}" >&2
     fi
 
     if [ ! -z "${arg__url}" ]; then
