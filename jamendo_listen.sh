@@ -20,6 +20,7 @@ jl__bin_mocp="mocp"
 jl__bin_vlc=$(which vlc)
 jl__bin_mplayer=$(which mplayer)
 jl__bin_mplayer2=$(which mplayer2)
+jl__bin_wget=$(which wget)
 
 
 
@@ -50,10 +51,10 @@ Options
  -url|--url				Instead of Album ID you can use the whole URL (without last /).
  -plv|--print-last-valid		Prints the last valid album ID from ${jl__save_last_valid_url} and exit.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
- -d|--download                		Use ${jl__download_app} to download current album.
+ -d|--download                		Use wget to download current album.
 					Requesting a download for a track results in the complete album download :)
  -pd|--print-download-url		Print download url for current album.
- -o|--open-album-page			Use app to open the album page. (Currently ${jl__download_app}).
+ -o|--open-album-page			Use ${jl__download_app} to open the album page.
  -lm PLAYER                             Downloads the m3u file of the id and loads it into player X (default is last valid id from ${jl__save_last_valid_url}).
  -snlm PLAYER                           Search next album ID and load album m3u into player X (-sn + -lm X).
                                         PLAYER can be:
@@ -97,7 +98,7 @@ function download_m3u() {
     local _id=$1
     local _url=$(get_m3u_url_from_id ${_id})
     [ ! -d "$(dirname ${jl__tmp_m3u})" ] && mkdir "$(dirname ${jl__tmp_m3u})"
-    wget -O "${jl__tmp_m3u}" "${_url}" &>/dev/null
+    "${jl__bin_wget}" -O "${jl__tmp_m3u}" "${_url}" &>/dev/null
 
     #Special for better quality on jamendo :)
     #Jamendo gibt nur das Format mp31 fuer Streams als Standard raus; man kann jedoch auch das
@@ -225,7 +226,7 @@ function search_next_jid() {
 
 #Starts application x to open the album download page.
 # $1 - Album ID
-function open_download_page() {
+function download_album_or_track() {
     #"${jl__download_app}" "${jl__dwl_baseurl}/$1/?output=contentonly#" &>/dev/null &
     #"${jl__download_app}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" &>/dev/null &
 
@@ -238,7 +239,7 @@ function open_download_page() {
 	then
 		echo ${__url}
 	else
-		wget --trust-server-names --directory-prefix=${jl__download_dest} "${__url}" 
+		"${jl__bin_wget}" --trust-server-names --directory-prefix=${jl__download_dest} "${__url}" 
 	        echo $1 >> ${jl__downloaded} #Save id to downloaded list.
 	fi
     elif [ "${arg__url_type}" = 'track' ]
@@ -249,7 +250,7 @@ function open_download_page() {
 		echo ${__url}
 	else
 	 	#"${jl__download_app}" "http://www.jamendo.com/get/album/id/track/archiverestricted/redirect/$1/?are=ogg3" > /dev/null 2&>1 &
- 		wget --trust-server-names --directory-prefix=${jl__download_dest} "${__url}" 
+ 		"${jl__bin_wget}" --trust-server-names --directory-prefix=${jl__download_dest} "${__url}" 
 	fi
     fi
 }
@@ -343,7 +344,7 @@ function main() {
     fi
 
     if [ "${arg__download}" = "true" ]; then
-	open_download_page "${arg__start_id}"
+	download_album_or_track "${arg__start_id}"
 	exit 0
     fi
 }
