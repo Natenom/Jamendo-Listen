@@ -35,7 +35,7 @@ jl__downloaded_filename=jamendo_downloaded
 jl__save_last_valid_url=${jl__workdir}/${jl__lvurl_filename} #Save the last valid url to this file.
 jl__downloaded=${jl__workdir}/${jl__downloaded_filename}
 arg__verbose=false
-jl__stop_after_x_fails=200 #Stop after this count of failed IDs. Probably we are at the end of the ID List ... :P
+jl__stop_after_x_fails=100 #Stop after this count of failed IDs. Probably we are at the end of the ID List ... :P
 arg__suffix=""
 
 function help() {
@@ -67,6 +67,7 @@ Options
                                            v|vlc for Video Lan Client
 					   mp|mplayer for MPlayer
 					   mp2|mplayer2 for MPlayer2
+					PLAYER is mandatory, as there is no default.
                                         This is neccessary because every player has different commands to load playlists etc.
  -3|--printm3uurl			Prints m3u url. Can be used together with --suffix and/or --id.
  -sx|--suffix				By using a suffix (which will affect all used files/directories, but not jl__tmp_m3u) you can search
@@ -219,8 +220,11 @@ function search_next_jid() {
 	_counter=$((${_counter}+1))
 	if [ ${_counter} -gt ${jl__stop_after_x_fails} ]; then
 	    [ "${arg__verbose}" = "true" ] && echo "No new valid ID for ${jl__stop_after_x_fails} times. Break..."
+	    echo "Probed ${jl__stop_after_x_fails} ids but could not find a new album; this may be the last available album on jamendo. Quit... :)" 
 	    exit 3
 	fi
+	#be nice to the jamendo api, wait until next probe.
+	sleep 0.2
     done
     return 0
 }
