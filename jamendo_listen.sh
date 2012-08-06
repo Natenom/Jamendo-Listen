@@ -67,7 +67,7 @@ Options
 					   mp|mplayer for MPlayer
 					   mp2|mplayer2 for MPlayer2
                                         This is neccessary because every player has different commands to load playlists etc.
- -3|--printm3uurl			Prints m3u url. Cann be used together with --suffix and/or --id.
+ -3|--printm3uurl			Prints m3u url. Can be used together with --suffix and/or --id.
  -sx|--suffix				By using a suffix (which will affect all used files/directories, but not jl__tmp_m3u) you can search
  					different id pools. The default suffix is empty.
 					To initialize a new suffix, use "-sx newsuf --id 12345". The script will then search the next valid
