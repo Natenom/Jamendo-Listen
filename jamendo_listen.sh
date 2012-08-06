@@ -14,9 +14,8 @@ jl__download_dest="$HOME/stack/music" #Where your music should be downloaded to.
 jl__tmp_m3u=/tmp/jamendo/${$}_jamendo.m3u #Save m3u File to ... only temporary ... todo: remove temp data
 
 ## EXTERNAL PROGRAMS ##
-jl__download_app=/usr/bin/chromium
-jl__bin_mocp="mocp"
-#"/home/apps/moc/bin/mocp"
+jl__browser=$(which chromium)
+jl__bin_mocp=$(which mocp)
 jl__bin_vlc=$(which vlc)
 jl__bin_mplayer=$(which mplayer)
 jl__bin_mplayer2=$(which mplayer2)
@@ -46,33 +45,33 @@ $0
 Options
  -h|--help                		This help.
  -v|--verbose				Be verbose.
- -de|-debug|--debug			Use shell tracing "set -x"
- -i|--id				Album ID. ID is always an album ID. For others user -url.
+ -de|-debug|--debug			Use shell tracing "set -x".
+ -i|--id				Set album id by hand. This is always an album id.
  -url|--url				Instead of Album ID you can use the whole URL (without last /).
- -plv|--print-last-valid		Prints the last valid album ID from ${jl__save_last_valid_url} and exit.
- -sn|--searchnextid                     Search for the next valid album ID, store and display it.
- -d|--download                		Use wget to download current album.
+ -plv|--print-last-valid		Prints the last valid album ID. Can be used together with --suffix.
+ -sn|--searchnextid                     Search for the next valid album ID, store and display it. Can be used together with --suffix and/or --id.
+ -d|--download                		Download album using ${jl__bin_wget}. Can be used together with --suffix and/or --id.
 					Requesting a download for a track results in the complete album download :)
- -pd|--print-download-url		Print download url for current album.
- -o|--open-album-page			Use ${jl__download_app} to open the album page.
+ -pd|--print-download-url		Print download url for last valid album id. Can be used together with --suffix and/or --id.
+ -o|--open-album-page			Use ${jl__browser} to open the album page. Can be used together with --suffix and/or --id.
  -lm PLAYER                             Downloads the m3u file of the id and loads it into player X (default is last valid id from ${jl__save_last_valid_url}).
- -snlm PLAYER                           Search next album ID and load album m3u into player X (-sn + -lm X).
+					Can be used together with --suffix and/or --id.
+ -snlm PLAYER                           Search next album ID and load album m3u into player X (-sn + -lm X). Can be used together with --suffix and/or --id.
                                         PLAYER can be:
                                            m|moc for Music On Console
                                            v|vlc for Video Lan Client
 					   mp|mplayer for MPlayer
 					   mp2|mplayer2 for MPlayer2
                                         This is neccessary because every player has different commands to load playlists etc.
- -3|--printm3uurl			Prints m3u URL of given ID (default is last valid id from ${jl__save_last_valid_url}).
- -lvf					Use given file to store last valid id instead of default ${jl__save_last_valid_url}.
+ -3|--printm3uurl			Prints m3u url. Cann be used together with --suffix and/or --id.
  -sx|--suffix				By using a suffix (which will affect all used files/directories, but not jl__tmp_m3u) you can search
  					different id pools. E.g. -sx start for id=0 ... or -sx current...
 					It adds the given parameter to ${jl__save_last_valid_url} with a _ between.
-					Default suffix is empty. This replaces -lvf.
-                                        For now you need to create this file
-					and add the last line must contain any (valid or unvalid) Jamendo-ID. If this files does
-                                        not exist it will be created and the process will start from 0.
- -ps|--print-suffixes			Print available suffixes
+					Default suffix is empty.
+                                        For now you need to create this file and add the last line which must contain
+					any (valid or unvalid) Jamendo-ID. If this files does not exist it will be created and the process
+					will start from 0.
+ -ps|--print-suffixes			Print already used suffixes.
 
 
 Note: The last valid ID will only be saved to ${jl__save_last_valid_url} when using -sn or -snlm.
@@ -227,12 +226,12 @@ function search_next_jid() {
 #Starts application x to open the album download page.
 # $1 - Album ID
 function download_album_or_track() {
-    #"${jl__download_app}" "${jl__dwl_baseurl}/$1/?output=contentonly#" &>/dev/null &
-    #"${jl__download_app}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" &>/dev/null &
+    #"${jl__browser}" "${jl__dwl_baseurl}/$1/?output=contentonly#" &>/dev/null &
+    #"${jl__browser}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" &>/dev/null &
 
     if [ "${arg__url_type}" = "album" ]
     then
-    	#"${jl__download_app}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" > /dev/null 2&>1 &
+    	#"${jl__browser}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" > /dev/null 2&>1 &
 	#Direktdownload funktioniert nun...
 	local __url="http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3"
     	if [ "${arg__print_download_page_url}" = "true" ]
@@ -249,7 +248,7 @@ function download_album_or_track() {
 	then
 		echo ${__url}
 	else
-	 	#"${jl__download_app}" "http://www.jamendo.com/get/album/id/track/archiverestricted/redirect/$1/?are=ogg3" > /dev/null 2&>1 &
+	 	#"${jl__browser}" "http://www.jamendo.com/get/album/id/track/archiverestricted/redirect/$1/?are=ogg3" > /dev/null 2&>1 &
  		"${jl__bin_wget}" --trust-server-names --directory-prefix=${jl__download_dest} "${__url}" 
 	fi
     fi
@@ -259,7 +258,7 @@ function download_album_or_track() {
 # Needs to know whether url is album or track.
 # $1 = id
 function open_album_page() {
-    "${jl__download_app}" "http://www.jamendo.com/de/${arg__url_type}/${1}" > /dev/null 2&>1
+    "${jl__browser}" "http://www.jamendo.com/de/${arg__url_type}/${1}" > /dev/null 2&>1
 }
 
 #Reads an jamendo url and extracts the id.
