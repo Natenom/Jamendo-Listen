@@ -26,7 +26,7 @@ jl__bin_wget=$(which wget)
 ## DO NOT EDIT BELOW THIS LINE ##
 jl__dwl_baseurl="http://www.jamendo.com/de/download/album"
 jl__next_id=0
-arg__url_type='album'
+arg__url_type='list'
 
 jl__workdir="${HOME}/.local/share/jamendo_listen"
 
@@ -42,7 +42,26 @@ function help() {
 cat << EOF
 $0
 
-Options
+DESCRIPTION
+The main usage of this script is to listen albums on jamendo id by id. Therefor on the first start it searches the first available jamendo id,
+beginning from 0+1 and saves this id to a file named lvurl.
+
+History:
+The history of already found albums is stored in lvurl_history.
+The history of all downloaded albums from all FIXMEsSTRAENGE is stored in jamendo_downloaded.
+All files are stored in ~/.local/share/jamendo_listen/
+
+
+Search next id:
+To get the next valid id use --searchnextid|-sn. To play the album, use -lm PLAYER, which will download the m3u file of an album and load
+it into your PLAYER.
+You can take both steps in one turn with -snlm PLAYER.
+
+Suffixes:
+You can create different STRAENGE(FIXME) with --suffix|-sx which results in different lvurl_suffix(_history)-files.
+To start a new FIXME (suffix), use -id x -sx newFIXME to start from x+1. Then you can us only -sx newFIXME to use this suffix.
+
+OPTIONS
  -h|--help                		This help.
  -v|--verbose				Be verbose.
  -de|-debug|--debug			Use shell tracing "set -x".
@@ -84,7 +103,7 @@ EOF
 #Get a download link for m3u file to the according id.
 # $1 - Album ID
 function get_m3u_url_from_id() {
-    if [ "${arg__url_type}" = "album" ]
+    if [ "${arg__url_type}" = "list" ]
     then
     	#echo "http://api.jamendo.com/get2/stream/track/plain/?album_id=${1}&order=numalbum_asc&n=all&streamencoding=ogg2"
 	echo "http://api.jamendo.com/get2/stream/track/m3u/?album_id=${1}&order=numalbum_asc&n=all"
@@ -180,14 +199,14 @@ function load_m3u_to_player() {
       mp|mplayer)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
 	  #echo -e "Album ID: ${jl__next_id}\n"
-	  echo -e "Album ID: ${_album_id}\n"
+	  echo -e "List ID/Track ID: ${_album_id}\n"
 	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
 	;;
       mp2|mplayer2)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
 	  #echo -e "Album ID: ${jl__next_id}\n"
-	  echo -e "Album ID: ${_album_id}\n"
+	  echo -e "List ID/Track ID: ${_album_id} (${arg__url_type})\n"
 	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer2}" -playlist ${jl__tmp_m3u}
 	;;
@@ -235,7 +254,7 @@ function download_album_or_track() {
     #"${jl__browser}" "${jl__dwl_baseurl}/$1/?output=contentonly#" &>/dev/null &
     #"${jl__browser}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" &>/dev/null &
 
-    if [ "${arg__url_type}" = "album" ]
+    if [ "${arg__url_type}" = "list" ]
     then
     	#"${jl__browser}" "http://www.jamendo.com/get/album/id/album/archiverestricted/redirect/$1/?are=ogg3" > /dev/null 2&>1 &
 	#Direktdownload funktioniert nun...
@@ -270,15 +289,21 @@ function open_album_page() {
 #Reads an jamendo url and extracts the id.
 # Returns id.
 function get_id_from_url() { 
-    _tmp=$(echo ${2} | egrep -o '(track|album)/[0-9]{1,7}$')
-    print $(echo ${_tmp} | cut -d'/' -f2)
+     #_tmp=$(echo ${2} | egrep -o '(track|album)/[0-9]{1,7}$')
+     #print $(echo ${_tmp} | cut -d'/' -f2)
+     local _tmp=$(echo ${1} | egrep -o '(track|list)/.*/')
+     local _id=$(echo ${_tmp} | egrep -o '[0-9]{1,10}')
+     echo ${_id}
 }
 
 #Reads a jamendo url and extracts the type (track or album).
 # Returns type.
 function get_type_from_url() {
-    _tmp=$(echo ${2} | egrep -o '(track|album)/[0-9]{1,7}$')
-    print $(echo ${_tmp} | cut -d'/' -f1)
+    #_tmp=$(echo ${2} | egrep -o '(track|album)/[0-9]{1,7}$')
+    #print $(echo ${_tmp} | cut -d'/' -f1)
+    local _tmp=$(echo ${arg__url} | egrep -o '(track|list)/.*$')
+    local _url_type=$(echo ${_tmp} | cut -d'/' -f1)
+    echo ${_url_type}
 }
 
 function main() {
@@ -302,9 +327,16 @@ function main() {
     fi
 
     if [ ! -z "${arg__url}" ]; then
-	__tmp_inf=$(echo ${arg__url} | egrep -o '(track|album)/[0-9]{1,7}$')  #danach haben wir album/id oder /track/id
-	arg__url_type=$(echo ${__tmp_inf} | cut -d'/' -f1) #can be track or album
-	arg__start_id=$(echo ${__tmp_inf} | cut -d'/' -f2)
+	#__tmp_inf=$(echo ${arg__url} | egrep -o '(track|album)/[0-9]{1,7}$')  #danach haben wir album/id/albumname oder track/id/trackname
+	#arg__url_type=$(echo ${__tmp_inf} | cut -d'/' -f1) #can be track or album
+	#arg__start_id=$(echo ${__tmp_inf} | cut -d'/' -f2)
+
+	#__tmp_inf=$(echo ${arg__url} | egrep -o '(track|list)/.*$')
+	#arg__url_type=$(echo ${__tmp_inf} | cut -d'/' -f1)
+	#arg__start_id=$(echo ${__tmp_inf} | egrep -o '[0-9]{1,10}' )
+
+        arg__url_type=$(get_type_from_url ${arg__url})
+	arg__start_id=$(get_id_from_url ${arg__url})
     fi
 
     if [ "${arg__print_suffixes}" = "true" ]; then
