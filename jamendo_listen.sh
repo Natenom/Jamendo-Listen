@@ -94,7 +94,7 @@ OPTIONS
 					To initialize a new suffix, use "-sx newsuf --id 12345". The script will then search the next valid
 					album id, beginning with 12345+1. If the id is omitted, the script will start with album id 0+1.
  -ps|--print-suffixes			Print already used suffixes.
-
+ -ppurl|--print-page-url 		Print url to album/list/track page
 
 Note: The last valid ID will only be saved to ${jl__save_last_valid_url} when using -sn or -snlm.
 EOF
@@ -280,10 +280,40 @@ function download_album_or_track() {
 #Starts the defined application to open the album page.
 # Needs to know whether url is album or track.
 # $1 = id
+# $2 = type_of_id
 function open_album_page() {
-    "${jl__browser}" "http://www.jamendo.com/de/${arg__url_type}/${1}" > /dev/null 2&>1
+    #"${jl__browser}" "http://www.jamendo.com/de/${arg__url_type}/${1}" > /dev/null 2&>1
+
+    local _url=$(get_page_url_for_id ${1} ${2})
+    "${jl__browser}" ${_url} >/dev/null 2>&1
 }
 
+#Prints the url of a list or track
+# $1 = id
+# $2 = type_of_id
+function print_album_page() {
+    local _url=$(get_page_url_for_id ${1} ${2})
+    echo ${_url}
+}
+
+#Returns the url for a list or track.
+#To determine whether the id is a list or track it uses ${arg__url_type}.
+# $1 = id
+# $2 = type_of_id
+function get_page_url_for_id() {
+    case ${2} in
+        list)
+	    echo http://www.jamendo.com/de/${arg__url_type}/a${1}
+	    ;;
+	track)
+	    echo http://www.jamendo.com/de/${arg__url_type}/${1}
+	    ;;
+    esac
+
+    #echo "http://www.jamendo.com/de/${arg__url_type}/${1}"
+}
+
+#Reads an jamendo url and extracts the id.
 #Reads an jamendo url and extracts the id.
 # Returns id.
 function get_id_from_url() { 
@@ -374,8 +404,13 @@ function main() {
     fi
 
 
+    if [ "${arg__print_albumpage}" = "true" ]; then
+	print_album_page "${arg__start_id}" "${arg__url_type}"
+	exit 0
+    fi
+
     if [ "${arg__open_albumpage}" = "true" ]; then
-	open_album_page "${arg__start_id}"
+	open_album_page "${arg__start_id}" "${arg__url_type}"
 	exit 0
     fi
 
@@ -443,6 +478,10 @@ function parse_options()
                 ;;
             -o|--open-album-page)
 		arg__open_albumpage="true"
+                shift
+                ;;
+            -ppurl|--print-page-url)
+		arg__print_albumpage="true"
                 shift
                 ;;
 	    -ps|--print-suffixes)
