@@ -198,15 +198,13 @@ function load_m3u_to_player() {
         ;;
       mp|mplayer)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
-	  #echo -e "Album ID: ${jl__next_id}\n"
-	  echo -e "List ID/Track ID: ${_album_id}\n"
+	  echo -e "ID (${arg__url_type}): ${_album_id}\n"
 	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
 	;;
       mp2|mplayer2)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
-	  #echo -e "Album ID: ${jl__next_id}\n"
-	  echo -e "List ID/Track ID: ${_album_id} (${arg__url_type})\n"
+	  echo -e "ID (${arg__url_type}): ${_album_id}\n"
 	  echo -e "Playlist file: ${jl__tmp_m3u}\n"
           "${jl__bin_mplayer2}" -playlist ${jl__tmp_m3u}
 	;;
