@@ -20,7 +20,7 @@ jl__bin_vlc=$(which vlc)
 jl__bin_mplayer=$(which mplayer)
 jl__bin_mplayer2=$(which mplayer2)
 jl__bin_wget=$(which wget)
-
+jl__clipboard="xsel"  # can be xsel or xclip
 
 
 ## DO NOT EDIT BELOW THIS LINE ##
@@ -68,6 +68,7 @@ OPTIONS
  -i|--id				Set album id by hand. This is always an album id. Can be replaced by --url.
  -url|--url				Instead of --id you can always specify an album id using the whole album URL (without last /).
 					Can be replaced by --id.
+ -xurl|--xurl				Get the url from clipboard (using xsel by default, change jl__clipboard to use xclip)
  -plv|--print-last-valid		Prints the last valid album ID. Can be used together with --suffix.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
 					Can be used together with --suffix and/or --id.
@@ -445,6 +446,17 @@ function parse_options()
 	    -url|--url) #Anstatt id kann man auch die ganze url verwenden
 		arg__url="${2}"
 		shift 2
+		;;
+	    -xurl|--xurl) #get url from xsel
+	        case ${jl__clipboard} in
+		    "xsel")
+		        arg__url="$(xsel)"
+			;;
+		    "xclip")
+		        arg__url="$(xclip -o)"
+			;;
+		esac
+		shift 1
 		;;
             -lm |--loadm3uinto ) #Load the album m3u to the given player.
                 arg__loadm3uinto="true"
