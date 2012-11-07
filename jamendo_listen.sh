@@ -218,7 +218,6 @@ function load_m3u_to_player() {
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
 	;;
       mp2|mplayer2)
-	  set -x
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
 	  echo -e "License: $(print_license ${_album_id})"
 	  echo -e "ID (${arg__url_type}): ${_album_id}"
