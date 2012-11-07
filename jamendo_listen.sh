@@ -14,12 +14,12 @@ jl__download_dest="$HOME/stack/music" #Where your music should be downloaded to.
 jl__tmp_m3u=/tmp/jamendo/${$}_jamendo.m3u #Save m3u File to ... only temporary ... todo: remove temp data
 
 ## EXTERNAL PROGRAMS ##
-jl__browser=$(which chromium)
-jl__bin_mocp=$(which mocp)
-jl__bin_vlc=$(which vlc)
-jl__bin_mplayer=$(which mplayer)
-jl__bin_mplayer2=$(which mplayer2)
-jl__bin_wget=$(which wget)
+jl__browser=$(which chromium 2>/dev/null)
+jl__bin_mocp=$(which mocp 2>/dev/null)
+jl__bin_vlc=$(which vlc 2>/dev/null)
+jl__bin_mplayer=$(which mplayer 2>/dev/null)
+jl__bin_mplayer2=$(which mplayer2 2>/dev/null)
+jl__bin_wget=$(which wget 2>/dev/null)
 jl__clipboard="xsel"  # can be xsel or xclip
 
 
@@ -69,6 +69,7 @@ OPTIONS
  -url|--url				Instead of --id you can always specify an album id using the whole album URL (without last /).
 					Can be replaced by --id.
  -xurl|--xurl				Get the url from clipboard (using xsel by default, change jl__clipboard to use xclip)
+ -gl|--get-license			Fetches the License of an Album from Jamendo for the id given with -url|-i|-xurl
  -plv|--print-last-valid		Prints the last valid album ID. Can be used together with --suffix.
  -sn|--searchnextid                     Search for the next valid album ID, store and display it.
 					Can be used together with --suffix and/or --id.
@@ -199,6 +200,7 @@ function load_m3u_to_player() {
         ;;
       mp|mplayer)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
+	  echo -e "License: $(print_license ${_album_id})"
 	  echo -e "ID (${arg__url_type}): ${_album_id}"
 	  echo -e "${arg__url_type} URL: $(get_page_url_for_id ${_album_id} ${arg__url_type})"
 	  echo -e "Playlist file: ${jl__tmp_m3u}"
@@ -206,6 +208,7 @@ function load_m3u_to_player() {
 	;;
       mp2|mplayer2)
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
+	  echo -e "License: $(print_license ${_album_id})"
 	  echo -e "ID (${arg__url_type}): ${_album_id}"
 	  echo -e "${arg__url_type} URL: $(get_page_url_for_id ${_album_id} ${arg__url_type})"
 	  echo -e "Playlist file: ${jl__tmp_m3u}"
@@ -337,6 +340,12 @@ function get_type_from_url() {
     echo ${_url_type}
 }
 
+function print_license() {
+    _id=${1}
+    local _license=$(curl http://api.jamendo.com/get/license/id/license/page/plain/${_id} 2>/dev/null)
+    echo ${_license}
+}
+
 function main() {
     if [ ! -d "${jl__workdir}" ]; then
 	mkdir -p "${jl__workdir}"
@@ -421,6 +430,13 @@ function main() {
 	download_album_or_track "${arg__start_id}"
 	exit 0
     fi
+
+    if [ "${arg__get_license}" = "true" ]; then
+	print_license "${arg__start_id}"
+	exit 0
+    fi
+
+
 }
 
 function parse_options()
@@ -508,6 +524,10 @@ function parse_options()
                 ;;
 	    -de|-debug|--debug)
 		arg__debug="true"
+		shift
+		;;
+	    -gl|--get-license)
+		arg__get_license="true"
 		shift
 		;;
             --help|-h|*)
