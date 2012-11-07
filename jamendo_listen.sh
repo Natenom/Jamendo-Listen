@@ -102,6 +102,17 @@ Note: The last valid ID will only be saved to ${jl__save_last_valid_url} when us
 EOF
 }
 
+#Use the album_id to get license information
+function print_license() {
+    _id=${1}
+    local _license=$(curl http://api.jamendo.com/get/license/id/license/page/plain/${_id} 2>/dev/null)
+    if [ -z "$_licence" ];
+    then
+	_license="No license returned from jamendo :/"
+    fi
+    echo ${_license}
+}
+
 #Get a download link for m3u file to the according id.
 # $1 - Album ID
 function get_m3u_url_from_id() {
@@ -207,6 +218,7 @@ function load_m3u_to_player() {
           "${jl__bin_mplayer}" -playlist ${jl__tmp_m3u}
 	;;
       mp2|mplayer2)
+	  set -x
 	  echo -e "Song count: $(grep '^http://' ${jl__tmp_m3u} | wc -l)"
 	  echo -e "License: $(print_license ${_album_id})"
 	  echo -e "ID (${arg__url_type}): ${_album_id}"
@@ -338,12 +350,6 @@ function get_type_from_url() {
     local _tmp=$(echo ${arg__url} | egrep -o '(track|list)/.*$')
     local _url_type=$(echo ${_tmp} | cut -d'/' -f1)
     echo ${_url_type}
-}
-
-function print_license() {
-    _id=${1}
-    local _license=$(curl http://api.jamendo.com/get/license/id/license/page/plain/${_id} 2>/dev/null)
-    echo ${_license}
 }
 
 function main() {
@@ -501,7 +507,7 @@ function parse_options()
 		arg__download="true"
                 shift 
                 ;;
-	    -pd|--print-download-page-url)
+ 	    -pd|--print-download-page-url)
 		arg__download="true"
 		arg__print_download_page_url="true"
                 shift 
